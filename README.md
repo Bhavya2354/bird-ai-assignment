@@ -1,253 +1,276 @@
-🐔 Bird Counting & Weight Estimation using Computer Vision
+🐔 Bird Counting and Weight Estimation System
+
+Author: Bhavya
+
 📌 Project Overview
 
-This project is a computer vision–based prototype developed to analyze poultry farm CCTV footage using object detection, tracking, and analytics.
+This project is a computer vision prototype that processes poultry farm CCTV footage to:
 
-The system processes a fixed-camera poultry video and provides:
+Detect birds
 
-🐓 Bird counting over time using stable tracking IDs
+Track each bird across frames using stable IDs
 
-⚖️ Bird weight estimation using a valid proxy metric
+Count birds over time
 
-🎥 Annotated output video for visual verification
+Estimate bird weight using a visual proxy
 
-🌐 FastAPI service that returns structured analytics in JSON format
+Expose results via a simple FastAPI service
 
-The focus of this assignment is correctness, explainability, and clean engineering, rather than cloud deployment or large-scale infrastructure.
+Generate an annotated output video
 
-🎯 Problem Statement (Assignment Context)
+The system is designed to simulate a real-world poultry monitoring setup using a fixed camera, focusing on ML fundamentals, tracking logic, and system design rather than only model training.
 
-Given a poultry farm CCTV feed, build a prototype that can:
+🧠 Why this approach?
 
-Detect birds in each frame
+Real poultry datasets often provide images instead of videos
 
-Track birds across frames with stable IDs
+To simulate CCTV footage, image sequences were converted into a video
 
-Count birds over time (not per frame only)
+Emphasis is on:
 
-Estimate bird weight (or a defined proxy)
+Detection → Tracking → Analytics → API
 
-Expose the results through an API
+Robustness and explainability
 
-This project fulfills all requirements mentioned in the assignment PDF.
+Clean, reproducible engineering
 
-🧠 Design Approach & Key Decisions
-🔹 Bird Detection
+🛠 Tech Stack
 
-YOLOv8 (Ultralytics) is used for bird detection
+Python 3.10+
 
-A lightweight pretrained model (yolov8n.pt) is used for fast inference
+YOLOv8 (Ultralytics) – bird detection
 
-Detection runs on CPU, no GPU dependency
+OpenCV – video processing & visualization
 
-🔹 Bird Tracking
+SORT Tracker – object tracking
 
-SORT (Simple Online and Realtime Tracking) algorithm is implemented
+NumPy / SciPy – numerical processing
 
-Uses:
+FastAPI + Uvicorn – API layer
 
-Kalman Filter for motion prediction
-
-IoU-based matching for detection–track association
-
-Each bird is assigned a stable tracking ID
-
-🔹 Bird Counting Logic
-
-A bird is counted once per unique tracking ID
-
-Count is tracked over time (frame-wise)
-
-This avoids double counting and ensures temporal consistency
-
-🔹 Weight Estimation (Proxy-Based)
-
-⚠️ Important Note:
-True bird weight cannot be measured using a single RGB CCTV camera.
-
-So a weight proxy is used:
-
-Bounding box area is treated as a relative indicator of bird size
-
-Larger bounding box → higher weight index
-
-This approach is commonly used in poultry monitoring systems
-
-The output is a relative weight index, not grams or kilograms.
-
-🔹 API Design
-
-Implemented using FastAPI
-
-Designed for local evaluation
-
-Returns structured JSON analytics
-
-A sample API response is included for easy review
+All libraries used are open-source.
 
 📁 Project Structure
-bird-ai-assignment/
-├── app.py                    # FastAPI application
-├── run_pipeline.py           # End-to-end video processing script
-├── requirements.txt          # Python dependencies
-├── README.md                 # Project documentation
+bird-ai-assignemnt/
 │
-├── src/                      # Core logic
-│   ├── detector.py           # YOLOv8 bird detection
-│   ├── tracker.py            # SORT-based tracking
-│   ├── counter.py            # Bird counting over time
-│   ├── weight_estimator.py   # Weight proxy estimation
-│   ├── visualizer.py         # Annotated video generation
-│   └── utils.py              # Helper utilities
+├── README.md                 # Project documentation
+├── requirements.txt          # Python dependencies
+├── app.py                    # FastAPI application
+├── run_pipeline.py           # End-to-end pipeline runner
+│
+├── config/
+│   └── config.yaml           # Thresholds, FPS, paths
 │
 ├── models/
 │   └── yolov8n.pt             # Pretrained YOLOv8 model
 │
+├── src/
+│   ├── video_reader.py        # Image → video conversion
+│   ├── detector.py            # YOLO inference wrapper
+│   ├── tracker.py             # SORT-based tracking logic
+│   ├── counter.py             # Bird counting over time
+│   ├── weight_estimator.py    # Weight proxy estimation
+│   ├── visualizer.py          # Annotated video writer
+│   ├── utils.py               # Helper utilities
+│   └── sort/
+│       └── sort.py            # SORT tracker (MIT licensed)
+│
 ├── data/
-│   └── sample_video.mp4       # Input video (generated from images)
+│   ├── images/
+│   │   ├── train/images/      # Bird images (dataset)
+│   │   ├── valid/images/
+│   │   └── test/images/
+│   ├── sample_video.mp4       # Generated CCTV-style video
+│   └── README.md              # Dataset source info
 │
 ├── outputs/
 │   ├── annotated_videos/
-│   │   └── output.avi         # Annotated output video
+│   │   └── output.mp4         # Final annotated video
 │   └── json/
-│       └── sample_response.json  # Sample API JSON response
+│       └── sample_response.json # Sample API response
+│
+└── tests/
+    ├── test_detector.py
+    ├── test_tracking.py
+    ├── test_counting.py
+    └── test_weight.py
 
-📦 Dataset Details
-🔹 Dataset Source
+📊 Dataset Used
 
-Roboflow Universe – Chicken Detection Dataset
+Since the provided dataset link in the task description was unavailable, the following open-source dataset was used:
 
-Dataset contains images only, no videos
+Roboflow – Chicken Detection Dataset
+🔗 https://universe.roboflow.com/search?q=chicken%20detection
 
-🔹 Image-to-Video Conversion
+Dataset provides labeled poultry images
 
-Since no video dataset was available:
+Images are organized into train / valid / test
 
-Sequential images were stitched into a video
+Used for detection and simulated video generation
 
-This simulates a fixed CCTV camera feed
+🎥 Image → Video Conversion
 
-Resulting file:
+Because the dataset consists of images:
+
+Images were converted into a CCTV-style video
+
+This allows realistic testing of:
+
+Tracking
+
+Counting over time
+
+Video annotation
+
+Script used:
+
+python src/video_reader.py
+
+
+Output:
 
 data/sample_video.mp4
 
+🐔 Detection
 
-This approach is common when working with surveillance-style datasets.
+YOLOv8 pretrained model (yolov8n.pt)
 
-🛠️ Installation & Setup
-✅ Prerequisites
+Only bird-related detections are considered
 
-Python 3.9 or above
+Each detection outputs bounding box + confidence
 
-Works on Windows / Linux / macOS
+🔁 Tracking
 
-No GPU required
+SORT (Simple Online Realtime Tracking) algorithm
 
-🔹 Step 1: Clone Repository
-git clone <your-github-repo-link>
-cd bird-ai-assignment
+Each bird gets a stable tracking ID
 
-🔹 Step 2: Create Virtual Environment
-python -m venv venv
+Handles:
 
+Occlusion
 
-Activate:
+Temporary disappearance
 
-Windows
+Re-identification
 
-.\venv\Scripts\activate
+🔢 Bird Counting Logic
 
+Birds are counted using unique tracking IDs
 
-Linux / macOS
+Count increases when a new ID appears
 
-source venv/bin/activate
+Prevents double-counting across frames
 
-🔹 Step 3: Install Dependencies
-pip install -r requirements.txt
+⚖️ Weight Estimation (Proxy)
 
-▶️ How to Run the Project
-🟢 1. Generate Annotated Output Video
-python run_pipeline.py
+Since real bird weight data is unavailable:
 
+Bounding box area is used as a proxy
 
-This generates:
+Larger visible area ≈ heavier bird
 
-outputs/annotated_videos/output.avi
+Output is a relative weight index, not grams
 
+This matches real-world scenarios where visual estimation is used as a first approximation.
 
-The video includes:
+🎨 Annotated Output Video
 
-Bird bounding boxes
+The final output video includes:
+
+Bounding boxes
 
 Tracking IDs
 
-Live bird count overlay
+Bird count overlay
 
-🟢 2. Run the FastAPI Service
-uvicorn app:app --host 127.0.0.1 --port 8000
+Weight proxy overlay
 
-🟢 3. Access the API
-Swagger UI (Recommended)
-http://127.0.0.1:8000/docs
+Generated by:
 
-Direct API Endpoint
-http://127.0.0.1:8000/analyze
+python run_pipeline.py
 
-📤 API Output
 
-A sample API response is saved at:
+Output:
+
+outputs/annotated_videos/output.mp4
+
+🌐 API (FastAPI)
+
+A lightweight API exposes the results.
+
+Start the server
+uvicorn app:app --reload
+
+Endpoint
+GET /analyze
+
+Sample Response
+{
+  "total_birds_detected": 12,
+  "frames_processed": 217,
+  "average_weight_index": 0.74,
+  "output_video": "outputs/annotated_videos/output.mp4"
+}
+
+
+A sample response is saved at:
 
 outputs/json/sample_response.json
 
+▶️ How to Run the Project (From Scratch)
+1️⃣ Clone the repository
+git clone https://github.com/Bhavya2354/bird-ai-assignment.git
+cd bird-ai-assignment
 
-The response contains:
+2️⃣ Create virtual environment
+python -m venv venv
+venv\Scripts\activate
 
-Total birds detected
+3️⃣ Install dependencies
+pip install -r requirements.txt
 
-Count over time (frame-wise)
+4️⃣ Convert images to video
+python src/video_reader.py
 
-Per-bird weight index
+5️⃣ Run full pipeline
+python run_pipeline.py
 
-Average weight index
+6️⃣ Start API
+uvicorn app:app --reload
 
-This allows reviewers to inspect results without running the code.
+🧪 Testing
 
-📝 Notes for Evaluators
+Individual modules can be tested using:
 
-The API is intended for local evaluation
+python tests/test_detector.py
+python tests/test_tracking.py
+python tests/test_counting.py
+python tests/test_weight.py
 
-Annotated video and sample JSON are included for easy validation
+📝 Notes
 
-Weight estimation is a proxy, not a physical measurement
+No Docker used (as per instructions)
 
-The project is modular and easy to extend
+No external APIs used
 
-🚀 Possible Improvements
+Fully local, reproducible setup
 
-Camera calibration for real-world scaling
-
-Depth estimation using monocular or stereo vision
-
-Multi-camera tracking
-
-Temporal smoothing for weight trends
-
-Live RTSP stream integration
+Designed for clarity and explainability
 
 ✅ Conclusion
 
-This prototype demonstrates:
+This project demonstrates:
 
-Practical application of computer vision techniques
+Strong ML fundamentals
 
-Correct use of detection, tracking, and temporal analytics
+Real-time computer vision pipeline design
 
-Honest handling of real-world constraints
+Practical tracking and analytics
 
-Clean and reproducible engineering practices
+Clean software engineering practices
 
-👤 Author
+End-to-end ownership of a system
 
-Bhavya
+Author: Bhavya
 
-Machine Learning / Computer Vision Intern Applicant
+GitHub: https://github.com/Bhavya2354
