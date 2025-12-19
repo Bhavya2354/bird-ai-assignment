@@ -1,22 +1,22 @@
-🐔 Bird Counting and Weight Estimation (Poultry CCTV Analytics)
+🐔 Bird Counting and Weight Estimation using Poultry CCTV
 
 Author: Bhavya
 
 Role Applied: Machine Learning / AI Engineer Intern
 
-📌 Problem Statement (As Given in the Task)
+📌 Problem Statement
 
-The objective of this assignment is to evaluate depth in:
+The objective of this assignment is to evaluate practical understanding of:
 
 Machine Learning fundamentals
 
 Computer Vision
 
-Object Detection & Tracking
+Object detection and tracking
 
 API development
 
-The task requires building a prototype system that processes a fixed-camera poultry CCTV video to produce:
+The task is to build a prototype system that processes a fixed-camera poultry CCTV video and produces:
 
 Bird Counts Over Time
 
@@ -28,57 +28,50 @@ Or a clearly defined weight proxy / index
 
 Deliverables
 
-Full source code
+Complete source code
 
 Detailed README.md
 
 Annotated output video
 
-Sample JSON response from an API (FastAPI)
+Sample JSON response from a FastAPI service
 
-🧠 How I Approached the Problem :-
+🧠 Solution Overview & Approach
+Key Challenges
 
-Key Constraints & Observations
+Provided dataset link was unavailable
 
-Real poultry datasets often do not provide labeled videos
+Most public poultry datasets contain images, not videos
 
-Available datasets typically contain images
+No ground-truth bird weight data available
 
-Ground-truth bird weights are not available
+Design Strategy
 
-The system must still behave like a real CCTV pipeline
+To address these constraints, the system was designed as an end-to-end CCTV analytics pipeline:
 
-Design Decisions
-Requirement	Design Choice	Reason
-CCTV video	Image → Video conversion	Simulates fixed-camera footage
-Detection	YOLOv8 (pretrained)	Strong generalization, real-time
-Tracking	SORT	Stable IDs, lightweight, proven
-Counting	Track-ID based logic	Prevents double counting
-Weight	Bounding-box area proxy	Realistic visual approximation
-API	FastAPI	Lightweight, production-friendly
+Images → Video → Detection → Tracking → Counting → Weight Proxy → Visualization → API
 
-The system prioritizes end-to-end correctness, explainability, and reproducibility, not just model inference.
+The focus is on correct system design and explainability, rather than only model training.
 
 🛠 Technology Stack
 
 Python 3.10+
 
-YOLOv8 (Ultralytics) – bird detection
+YOLOv8 (Ultralytics) – object detection
 
 OpenCV – video processing & annotation
 
-SORT (Kalman Filter + IoU matching) – object tracking
+SORT (Kalman Filter + IoU matching) – tracking
 
 NumPy / SciPy – numerical computation
 
-FastAPI + Uvicorn – API service
+FastAPI + Uvicorn – API layer
 
-✅ All components are open-source
+✅ All tools are open-source
 ❌ No Docker used (as per instructions)
-❌ No external paid APIs
-
+❌ No external paid APIs used
+```
 📁 Project Structure
-```text
 bird-ai-assignemnt/
 │
 ├── README.md                 # Project documentation
@@ -87,17 +80,17 @@ bird-ai-assignemnt/
 ├── run_pipeline.py           # End-to-end pipeline runner
 │
 ├── config/
-│   └── config.yaml           # Thresholds, FPS, model paths
+│   └── config.yaml           # Thresholds, FPS, paths
 │
 ├── models/
-│   └── yolov8n.pt            # Pretrained YOLOv8 model
+│   └── yolov8n.pt             # Pretrained YOLOv8 model
 │
 ├── src/
 │   ├── video_reader.py        # Image → video conversion
 │   ├── detector.py            # YOLO inference wrapper
 │   ├── tracker.py             # SORT-based tracking logic
-│   ├── counter.py             # Bird counting over time
-│   ├── weight_estimator.py    # Weight proxy logic
+│   ├── counter.py             # Bird counting logic
+│   ├── weight_estimator.py    # Weight proxy estimation
 │   ├── visualizer.py          # Annotated video writer
 │   ├── utils.py               # Helper utilities
 │   └── sort/
@@ -115,7 +108,7 @@ bird-ai-assignemnt/
 │   ├── annotated_videos/
 │   │   └── output.mp4         # Final annotated video
 │   └── json/
-│       └── sample_response.json # Sample API response
+│       └── sample_response.json
 │
 └── tests/
     ├── test_detector.py
@@ -123,140 +116,195 @@ bird-ai-assignemnt/
     ├── test_counting.py
     └── test_weight.py
 ```
-
-
 📊 Dataset Used
 
-The dataset link provided in the task description was unavailable at the time of implementation.
-Therefore, a public, open-source poultry detection dataset was used.
+Since the dataset link provided in the task description was unavailable, the following public open-source dataset was used:
 
 Roboflow – Chicken Detection Dataset
-🔗 https://app.roboflow.com/shashank-l4mfk/chicken-detection-ehuwm-jrr73/
 
-Dataset Characteristics
+🔗 https://universe.roboflow.com/shashank-l4mfk/chicken-detection-ehuwm-jrr73
+
+Dataset Details
 
 Labeled poultry images
 
-Train / Validation / Test split
+Train / validation / test split
 
-Multiple lighting & posture variations
+Multiple poses and lighting conditions
 
-Suitable for detection model inference
+Suitable for detection and tracking evaluation
 
-🎥 Image → Video Conversion (CCTV Simulation)
+🧩 Implementation Details
 
-Because the dataset contains images, a video was created to simulate fixed-camera CCTV footage.
+This section explains how each requirement was implemented.
 
-Why this matters
+1️⃣ Image → Video Conversion (CCTV Simulation)
+
+File: src/video_reader.py
+
+Dataset consists of static images
+
+Images are:
+
+Loaded in sorted order
+
+Resized to a fixed resolution
+
+Written sequentially into a video using OpenCV
+
+Why this step is important
 
 Enables realistic tracking behavior
 
-Allows count-over-time logic
+Mimics fixed-camera poultry CCTV footage
 
-Matches real deployment constraints
-
-Script Used
-python src/video_reader.py
+Allows count-over-time analysis
 
 Output
+
 data/sample_video.mp4
 
-🐔 Detection Module
+2️⃣ Bird Detection
 
-Model: YOLOv8 (pretrained)
+File: src/detector.py
 
-Input: Video frames
+Uses YOLOv8 pretrained model (yolov8n.pt)
 
-Output: Bounding boxes + confidence scores
+Each frame produces:
+
+Bounding boxes
+
+Confidence scores
 
 Only bird-related detections are retained
 
-The detection module is isolated in detector.py for modularity.
+YOLOv8 was chosen for its speed, robustness, and generalization.
 
-🔁 Tracking Module (Stable IDs)
+3️⃣ Bird Tracking (Stable IDs)
 
-Algorithm: SORT (Simple Online and Realtime Tracking)
+Files:
 
-Uses:
+src/tracker.py
+
+src/sort/sort.py
+
+Tracking is implemented using SORT (Simple Online and Realtime Tracking), which combines:
 
 Kalman Filter for motion prediction
 
-IoU-based assignment for matching detections
+IoU-based assignment for detection-to-track matching
 
-Why SORT?
+Each bird receives a persistent ID, enabling identity preservation across frames.
 
-Lightweight and fast
+4️⃣ Bird Counting Logic
 
-Stable IDs across frames
+File: src/counter.py
 
-Suitable for real-time poultry analytics
+Counting is ID-based, not frame-based
 
-Each bird is assigned a persistent ID, enabling correct counting.
+Logic:
 
-🔢 Bird Counting Logic
+When a new tracking ID appears → count increases
 
-Counting is not frame-based.
+Previously seen IDs are ignored
 
-Instead:
+This prevents double-counting even if birds reappear.
 
-Each new tracking ID increments the total count
+5️⃣ Weight Estimation (Proxy / Index)
 
-Reappearing birds are not double-counted
+File: src/weight_estimator.py
 
-This ensures:
+Real bird weight ground truth is unavailable
 
-Correct cumulative counts
+A visual proxy is used:
 
-Robustness to occlusions and motion
+Bounding box area ≈ relative bird size
 
-Implemented in counter.py.
+Output is a weight index, not grams
 
-⚖️ Weight Estimation (Proxy / Index)
-Why a proxy?
+This mirrors real-world poultry monitoring systems where visual estimation is used initially.
 
-No ground-truth bird weights available
+6️⃣ Visualization & Annotation
 
-Real farms often rely on visual estimation
+File: src/visualizer.py
 
-Method Used
-
-Bounding-box area is used as a proxy
-
-Larger visible area ≈ heavier bird
-
-Output is a relative weight index, not grams
-
-This is clearly documented and justified.
-
-🎨 Annotated Output Video
-
-The final video includes:
+Each frame is annotated with:
 
 Bounding boxes
 
 Tracking IDs
 
+Current bird count
+
+Weight proxy index
+
+Annotated frames are written back into a video.
+
+7️⃣ End-to-End Pipeline Execution
+
+File: run_pipeline.py
+
+This script:
+
+Loads the generated video
+
+Runs detection, tracking, counting, and weight estimation
+
+Saves the annotated output video
+
+Stores summary statistics for API usage
+
+Command:
+
+python run_pipeline.py
+
+8️⃣ API Implementation (FastAPI)
+
+File: app.py
+
+Built using FastAPI
+
+Exposes pipeline results via an HTTP endpoint
+
+Endpoint
+
+GET /analyze
+
+📤 Output Explanation
+🎥 Annotated Output Video
+
+Path
+
+outputs/annotated_videos/output.mp4
+
+
+Contains
+
+Bird bounding boxes
+
+Unique tracking IDs
+
 Bird count overlay
 
 Weight proxy overlay
 
-Generate Output
-python run_pipeline.py
+Purpose
 
-Output File
-outputs/annotated_videos/output.mp4
+Visual verification of detection & tracking
 
-🌐 API Implementation (FastAPI)
+Easy inspection by reviewers
 
-A simple API exposes the results of the pipeline.
+Demonstrates correctness of the system
 
-Start the Server
-uvicorn app:app --reload
+📄 API JSON Output
 
-Endpoint
-GET /analyze
+Path
 
-Sample JSON Response
+outputs/json/sample_response.json
+
+
+Sample Response
+
 {
   "total_birds_detected": 12,
   "frames_processed": 217,
@@ -265,53 +313,37 @@ Sample JSON Response
 }
 
 
-Saved at:
+Field Explanation
 
-outputs/json/sample_response.json
+total_birds_detected → Unique birds counted using tracking IDs
 
-📈 Accuracy & Evaluation Notes
+frames_processed → Number of frames analyzed
 
-Detection accuracy depends on the pretrained YOLOv8 model
+average_weight_index → Mean relative weight proxy
 
-Tracking accuracy validated via:
+output_video → Path to annotated video
 
-Stable ID persistence
+📈 Accuracy & Validation Notes
 
-No ID switching in normal motion
+Detection accuracy depends on YOLOv8 pretrained performance
 
-Counting correctness verified by:
+Tracking stability validated via stable ID persistence
 
-Manual frame inspection
+Counting correctness ensured through ID-based logic
 
-ID-based counting logic
-
-Since no labeled video ground truth is available, qualitative evaluation and visual verification were used, which aligns with real-world prototype validation.
+Since labeled video ground truth is unavailable, qualitative validation and visual inspection were used, which is standard for prototype systems.
 
 ▶️ How to Run the Project (From Scratch)
-1️⃣ Clone the repository
 git clone https://github.com/Bhavya2354/bird-ai-assignment.git
 cd bird-ai-assignment
-
-2️⃣ Create virtual environment
 python -m venv venv
 venv\Scripts\activate
-
-3️⃣ Install dependencies
 pip install -r requirements.txt
-
-4️⃣ Convert images to video
 python src/video_reader.py
-
-5️⃣ Run full pipeline
 python run_pipeline.py
-
-6️⃣ Start API
 uvicorn app:app --reload
 
 🧪 Testing
-
-Each component can be tested independently:
-
 python tests/test_detector.py
 python tests/test_tracking.py
 python tests/test_counting.py
@@ -323,23 +355,23 @@ No Docker used
 
 No external APIs used
 
-Fully local & reproducible
+Fully local and reproducible
 
-Code structured for readability and extensibility
+Designed for clarity and explainability
 
 ✅ Conclusion
 
-This prototype demonstrates:
+This project demonstrates:
 
-Strong ML & computer vision fundamentals
+Strong ML and computer vision fundamentals
 
-Correct use of detection + tracking for analytics
+Correct use of detection and tracking for analytics
 
-Realistic system design under dataset constraints
+Practical system design under real-world constraints
 
-Clean engineering and reproducibility
+Clean, modular engineering
 
-End-to-end ownership of a production-style pipeline
+End-to-end ownership of a production-style prototype
 
 Author: Bhavya
 
