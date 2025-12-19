@@ -1,6 +1,7 @@
 🐔 Bird Counting and Weight Estimation (Poultry CCTV Analytics)
 
 Author: Bhavya
+
 Role Applied: Machine Learning / AI Engineer Intern
 
 📌 Problem Statement (As Given in the Task)
@@ -35,7 +36,8 @@ Annotated output video
 
 Sample JSON response from an API (FastAPI)
 
-🧠 How I Approached the Problem
+🧠 How I Approached the Problem :-
+
 Key Constraints & Observations
 
 Real poultry datasets often do not provide labeled videos
@@ -340,4 +342,5 @@ Clean engineering and reproducibility
 End-to-end ownership of a production-style pipeline
 
 Author: Bhavya
+
 GitHub: https://github.com/Bhavya2354
