@@ -304,17 +304,17 @@ outputs/json/sample_response.json
 
 
 Sample Response
-
+```
 {
   "total_birds_detected": 12,
   "frames_processed": 217,
   "average_weight_index": 0.74,
   "output_video": "outputs/annotated_videos/output.mp4"
 }
-
+```
 
 Field Explanation
-
+```
 total_birds_detected → Unique birds counted using tracking IDs
 
 frames_processed → Number of frames analyzed
@@ -322,7 +322,7 @@ frames_processed → Number of frames analyzed
 average_weight_index → Mean relative weight proxy
 
 output_video → Path to annotated video
-
+```
 📈 Accuracy & Validation Notes
 
 Detection accuracy depends on YOLOv8 pretrained performance
@@ -332,7 +332,7 @@ Tracking stability validated via stable ID persistence
 Counting correctness ensured through ID-based logic
 
 Since labeled video ground truth is unavailable, qualitative validation and visual inspection were used, which is standard for prototype systems.
-
+```
 ▶️ How to Run the Project (From Scratch)
 git clone https://github.com/Bhavya2354/bird-ai-assignment.git
 cd bird-ai-assignment
@@ -342,12 +342,14 @@ pip install -r requirements.txt
 python src/video_reader.py
 python run_pipeline.py
 uvicorn app:app --reload
-
+```
+```
 🧪 Testing
 python tests/test_detector.py
 python tests/test_tracking.py
 python tests/test_counting.py
 python tests/test_weight.py
+```
 
 📝 Notes
 
